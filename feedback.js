@@ -1,9 +1,7 @@
 /*
  * Doublesmart feedbacktool – feedback.js
  * Plaatsing op de klantsite:
- *   <script src="[url]/feedback.js?k=[publieke_sleutel]" async></script>
- * In de <head>, de <body> of via Google Tag Manager. De oude vorm met
- * data-klant="[publieke_sleutel]" werkt ook nog, maar niet via Tag Manager.
+ *   <script src="[url]/feedback.js" data-klant="[publieke_sleutel]" async></script>
  *
  * Vaste regels: geen framework, geen cookies (alleen sessionStorage), en het
  * script mag de site nooit breken: bij elke fout stopt het stil.
@@ -25,19 +23,7 @@
   if (window.dsFeedbackGeladen) return; // script per ongeluk twee keer geplaatst
   window.dsFeedbackGeladen = true;
 
-  const scriptTag =
-    document.currentScript || document.querySelector('script[data-klant], script[src*="feedback.js?"]');
-
-  // De sleutel van de klant staat in het scriptadres (feedback.js?k=...) of in
-  // data-klant. Het adres blijft ook via Google Tag Manager heel; data-klant
-  // haalt Tag Manager weg.
-  const sleutel = (() => {
-    try {
-      return new URL(scriptTag.src).searchParams.get("k") || scriptTag.dataset.klant;
-    } catch {
-      return scriptTag && scriptTag.dataset.klant;
-    }
-  })();
+  const scriptTag = document.currentScript || document.querySelector("script[data-klant]");
 
   // Komt het script zelf van deze laptop (localhost), dan praat het met de
   // lokale Supabase; anders (bijv. GitHub Pages) met de online omgeving.
@@ -566,6 +552,7 @@
   }
 
   async function start() {
+    const sleutel = scriptTag && scriptTag.dataset.klant;
     if (!sleutel) return;
 
     const res = await fetch(`${API}/config?k=${encodeURIComponent(sleutel)}`);
