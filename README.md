@@ -11,10 +11,8 @@ https://doublesmartstackbv.github.io/feedback-script/feedback.js
 Eén regel op de website, met de publieke sleutel van de klant:
 
 ```html
-<script src="https://doublesmartstackbv.github.io/feedback-script/feedback.js?k=[publieke_sleutel]" async></script>
+<script src="https://doublesmartstackbv.github.io/feedback-script/feedback.js" data-klant="[publieke_sleutel]" async></script>
 ```
-
-Deze regel werkt in de `<head>`, in de `<body>` en via Google Tag Manager (Custom HTML-tag). De oudere vorm met `data-klant="[publieke_sleutel]"` werkt ook nog, maar niet via Tag Manager: Tag Manager haalt dat attribuut weg.
 
 De publieke sleutel is geen geheim. Het script toont alleen iets op domeinen die voor die klant zijn toegestaan.
 
