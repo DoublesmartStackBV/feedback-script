@@ -80,17 +80,18 @@
     return e;
   }
 
-  // De vijf smileys van de feedbackknop: kleur van de rand en vorm van de mond
+  // Mond van de vijf smileys van de feedbackknop, van boos naar blij.
+  // De kleur staat in de CSS (.s0 t/m .s4): grijs, en in kleur bij muis of keuze.
   const SMILEYS = [
-    { kleur: "#e5484d", mond: "M10 23 Q16 17 22 23" },
-    { kleur: "#f5853f", mond: "M11 22 Q16 19.5 21 22" },
-    { kleur: "#f5c518", mond: "M11 21 L21 21" },
-    { kleur: "#8cc63f", mond: "M11 20 Q16 22.5 21 20" },
-    { kleur: "#30a46c", mond: "M10 19 Q16 25 22 19" },
+    "M10 23 Q16 17 22 23",
+    "M11 22 Q16 19.5 21 22",
+    "M11 21 L21 21",
+    "M11 20 Q16 22.5 21 20",
+    "M10 19 Q16 25 22 19",
   ];
 
   // Tekent één smiley als SVG (met createElementNS, dus geen HTML-tekst nodig)
-  function smiley({ kleur, mond }) {
+  function smiley(mond) {
     const svg = (tag, attrs) => {
       const e = document.createElementNS("http://www.w3.org/2000/svg", tag);
       for (const [k, v] of Object.entries(attrs)) e.setAttribute(k, v);
@@ -98,10 +99,10 @@
     };
     const tekening = svg("svg", { viewBox: "0 0 32 32", "aria-hidden": "true", focusable: "false" });
     tekening.append(
-      svg("circle", { cx: "16", cy: "16", r: "14", fill: "#fff", stroke: kleur, "stroke-width": "2.5" }),
-      svg("circle", { cx: "11", cy: "13", r: "1.8", fill: "#111" }),
-      svg("circle", { cx: "21", cy: "13", r: "1.8", fill: "#111" }),
-      svg("path", { d: mond, fill: "none", stroke: "#111", "stroke-width": "2", "stroke-linecap": "round" }),
+      svg("circle", { cx: "16", cy: "16", r: "14", fill: "#fff", stroke: "currentColor", "stroke-width": "2.5" }),
+      svg("circle", { cx: "11", cy: "13", r: "1.8", fill: "currentColor" }),
+      svg("circle", { cx: "21", cy: "13", r: "1.8", fill: "currentColor" }),
+      svg("path", { d: mond, fill: "none", stroke: "currentColor", "stroke-width": "2", "stroke-linecap": "round" }),
     );
     return tekening;
   }
@@ -264,14 +265,14 @@
       kaart.append(groep, versturenKnop(() =>
         andersVeld && gekozen === vervolg.bij ? andersVeld.value : ""));
     } else if (heeftOpties) {
-      // Smileys: vijf gezichtjes zonder tekst, met een gekleurde rand van rood (links) naar groen.
+      // Smileys: vijf grijze gezichtjes zonder tekst; bij muis of keuze in kleur, van rood (links) naar groen.
       // De optie blijft het antwoord en is de naam voor schermlezers (niet alleen kleur).
       const smileys = vraag.weergave === "smileys" && vraag.opties.length === SMILEYS.length;
       const rij = el("div", smileys
         ? { class: "opties smileys", role: "group", "aria-labelledby": id } : { class: "opties" });
       const knoppen = vraag.opties.map((optie, i) => {
         const b = smileys
-          ? el("button", { class: "optie smiley", type: "button", "aria-pressed": "false", "aria-label": optie, title: optie })
+          ? el("button", { class: `optie smiley s${i}`, type: "button", "aria-pressed": "false", "aria-label": optie, title: optie })
           : el("button", { class: "optie", type: "button", "aria-pressed": "false" }, optie);
         if (smileys) b.append(smiley(SMILEYS[i]));
         b.addEventListener("click", veilig(() => {
@@ -645,9 +646,14 @@
       background: none; border: 2px solid transparent; border-radius: 50%; transition: transform .1s;
     }
     .optie.smiley svg { display: block; width: 100%; height: 100%; }
+    .optie.smiley { color: #9a9a9a; }
     .optie.smiley:hover { transform: scale(1.1); border-color: transparent; }
     .optie.smiley[aria-pressed="true"] { background: none; border-color: #111; }
-    .opties.smileys:has([aria-pressed="true"]) .smiley[aria-pressed="false"] { opacity: .4; }
+    .s0:hover, .s0:focus-visible, .s0[aria-pressed="true"] { color: #e5484d; }
+    .s1:hover, .s1:focus-visible, .s1[aria-pressed="true"] { color: #f5853f; }
+    .s2:hover, .s2:focus-visible, .s2[aria-pressed="true"] { color: #e0b000; }
+    .s3:hover, .s3:focus-visible, .s3[aria-pressed="true"] { color: #7cb82f; }
+    .s4:hover, .s4:focus-visible, .s4[aria-pressed="true"] { color: #30a46c; }
     .lijst { display: grid; gap: 8px; }
     .lijst.na_aankoop { grid-template-columns: 1fr 1fr; }
     .keuze {
