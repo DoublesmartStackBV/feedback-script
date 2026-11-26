@@ -80,6 +80,32 @@
     return e;
   }
 
+  // De vijf smileys van de feedbackknop: kleur van de rand en vorm van de mond
+  const SMILEYS = [
+    { kleur: "#e5484d", mond: "M10 23 Q16 17 22 23" },
+    { kleur: "#f5853f", mond: "M11 22 Q16 19.5 21 22" },
+    { kleur: "#f5c518", mond: "M11 21 L21 21" },
+    { kleur: "#8cc63f", mond: "M11 20 Q16 22.5 21 20" },
+    { kleur: "#30a46c", mond: "M10 19 Q16 25 22 19" },
+  ];
+
+  // Tekent één smiley als SVG (met createElementNS, dus geen HTML-tekst nodig)
+  function smiley({ kleur, mond }) {
+    const svg = (tag, attrs) => {
+      const e = document.createElementNS("http://www.w3.org/2000/svg", tag);
+      for (const [k, v] of Object.entries(attrs)) e.setAttribute(k, v);
+      return e;
+    };
+    const tekening = svg("svg", { viewBox: "0 0 32 32", "aria-hidden": "true", focusable: "false" });
+    tekening.append(
+      svg("circle", { cx: "16", cy: "16", r: "14", fill: "#fff", stroke: kleur, "stroke-width": "2.5" }),
+      svg("circle", { cx: "11", cy: "13", r: "1.8", fill: "#111" }),
+      svg("circle", { cx: "21", cy: "13", r: "1.8", fill: "#111" }),
+      svg("path", { d: mond, fill: "none", stroke: "#111", "stroke-width": "2", "stroke-linecap": "round" }),
+    );
+    return tekening;
+  }
+
   function stuurAntwoord(sleutel, onderdeel, keuze, tekst, honeypot) {
     const body = JSON.stringify({
       k: sleutel,
@@ -238,9 +264,16 @@
       kaart.append(groep, versturenKnop(() =>
         andersVeld && gekozen === vervolg.bij ? andersVeld.value : ""));
     } else if (heeftOpties) {
-      const rij = el("div", { class: "opties" });
-      const knoppen = vraag.opties.map((optie) => {
-        const b = el("button", { class: "optie", type: "button", "aria-pressed": "false" }, optie);
+      // Smileys: vijf gezichtjes zonder tekst, met een gekleurde rand van rood (links) naar groen.
+      // De optie blijft het antwoord en is de naam voor schermlezers (niet alleen kleur).
+      const smileys = vraag.weergave === "smileys" && vraag.opties.length === SMILEYS.length;
+      const rij = el("div", smileys
+        ? { class: "opties smileys", role: "group", "aria-labelledby": id } : { class: "opties" });
+      const knoppen = vraag.opties.map((optie, i) => {
+        const b = smileys
+          ? el("button", { class: "optie smiley", type: "button", "aria-pressed": "false", "aria-label": optie, title: optie })
+          : el("button", { class: "optie", type: "button", "aria-pressed": "false" }, optie);
+        if (smileys) b.append(smiley(SMILEYS[i]));
         b.addEventListener("click", veilig(() => {
           kies(optie);
           for (const k of knoppen) k.setAttribute("aria-pressed", String(k === b));
@@ -606,6 +639,15 @@
     }
     .optie:hover { border-color: #111; }
     .optie[aria-pressed="true"] { background: #e8e8e8; border-color: #111; font-weight: 600; }
+    .opties.smileys { flex-wrap: nowrap; justify-content: space-between; gap: 4px; max-width: 320px; }
+    .optie.smiley {
+      flex: 0 0 auto; min-width: 0; width: 52px; height: 52px; padding: 4px;
+      background: none; border: 2px solid transparent; border-radius: 50%; transition: transform .1s;
+    }
+    .optie.smiley svg { display: block; width: 100%; height: 100%; }
+    .optie.smiley:hover { transform: scale(1.1); border-color: transparent; }
+    .optie.smiley[aria-pressed="true"] { background: none; border-color: #111; }
+    .opties.smileys:has([aria-pressed="true"]) .smiley[aria-pressed="false"] { opacity: .4; }
     .lijst { display: grid; gap: 8px; }
     .lijst.na_aankoop { grid-template-columns: 1fr 1fr; }
     .keuze {
